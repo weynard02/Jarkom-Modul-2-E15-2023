@@ -1,7 +1,7 @@
 #!/bin/bash
-cp /etc/apache2/sites-available/abimanyu.E15.com.conf /etc/apache2/sites-available/parikesit.abimanyu$
+cp /etc/apache2/sites-available/abimanyu.E15.com.conf /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
 
-echo '<VirtualHost *:81>
+echo '<VirtualHost *:80>
         # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
 
         ServerAdmin webmaster@localhost
@@ -19,16 +19,6 @@ echo '<VirtualHost *:81>
         </VirtualHost>
     ' > /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
 
-echo 'Listen 80
-Listen 81
-
-<IfModule ssl_module>
-        Listen 443
-</IfModule>
-
-<IfModule mod_gnutls.c>
-        Listen 443
-</IfModule>' > /etc/apache2/ports.conf
 
 a2ensite parikesit.abimanyu.E15.com.conf
 
