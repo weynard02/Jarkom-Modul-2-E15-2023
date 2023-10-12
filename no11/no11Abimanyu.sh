@@ -1,8 +1,9 @@
 apt-get install apache2 -y
 service apache2 start
+cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/abimanyu.E15.com.conf
 
-echo `<VirtualHost *:80>
-        # The ServerName directive sets the request scheme, hostn$        # the server uses to identify itself. This is used when c$        # redirection URLs. In the context of virtual hosts, the $        # specifies what hostname must appear in the request's Ho$        # match this virtual host. For the default virtual host ($        # value is not decisive as it is used as a last resort ho$        # However, you must set it for any further virtual host e$        #ServerName www.example.com
+echo '<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identify itself. This is used when c$        # redirection URLs. In the context of virtual hosts, the $        # specifies what hostname must appear in the requests Ho$        # match this virtual host. For the default virtual host ($        # value is not decisive as it is used as a last resort ho$        # However, you must set it for any further virtual host e$        #ServerName www.example.com
 
         ServerAdmin webmaster@localhost
         DocumentRoot /var/www/abimanyu.E15
@@ -19,4 +20,7 @@ echo `<VirtualHost *:80>
         # For most configuration files from conf-available/, whic$        # enabled or disabled at a global level, it is possible to        # include a line for only one particular virtual host. Fo$        # following line enables the CGI configuration for this h$        # after it has been globally disabled with "a2disconf".
         #Include conf-available/serve-cgi-bin.conf
         </VirtualHost>
-    ` > /etc/apache2/sites-available/000-default.conf
+    ' > /etc/apache2/sites-available/abimanyu.E15.com.conf
+
+a2ensite abimanyu.E15.com
+service apache2 restart
