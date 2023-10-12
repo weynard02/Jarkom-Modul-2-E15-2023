@@ -1,3 +1,5 @@
+
+
 echo '<VirtualHost *:80>
         # The ServerName directive sets the request scheme, hostn$        # the server uses$
 
@@ -12,12 +14,17 @@ echo '<VirtualHost *:80>
         <Directory /var/www/parikesit.abimanyu.E15/secret>
                 Options -Indexes
         </Directory>
-        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, al$        #LogLevel info ssl:warn
+        <Directory /var/www/parikesit.abimanyu.E15/public/js>
+                Options +Indexes
+        </Directory>
+
+        Alias "/js" "/var/www/parikesit.abimanyu.E15/public/js"
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, al$
 
         ErrorLog ${APACHE_LOG_DIR}/error.log
         CustomLog ${APACHE_LOG_DIR}/access.log combined
 
         ErrorDocument 404 /error/404.html
         ErrorDocument 403 /error/403.html
-        # For most configuration files from conf-available/, whic$        # enabled or disa$        </VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
+        # For most configuration files from conf-available/, whic$        # enabled or disa$</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
 service apache2 restart
