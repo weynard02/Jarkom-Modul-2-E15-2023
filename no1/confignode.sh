@@ -29,6 +29,7 @@ iface eth2 inet static
 auto eth3
 iface eth3 inet static
 	address 10.44.3.1
+	netmask 255.255.255.0
 
 
 #Abimanyu
