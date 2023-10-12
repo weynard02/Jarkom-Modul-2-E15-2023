@@ -22,8 +22,8 @@ echo '<VirtualHost *:80>
         </VirtualHost>
     ' > /etc/apache2/sites-available/abimanyu.E15.com.conf
 
-a2ensite abimanyu.E15.com
-service apache2 restart
+a2ensite abimanyu.E15.com.conf
+apt-get install libapache2-mod-php7.0
 
 mkdir /var/www/abimanyu.E15
 apt-get install wget unzip -y
@@ -31,3 +31,4 @@ apt-get install wget unzip -y
 wget https://github.com/weynard02/jarkom-modul2-resources/archive/refs/heads/main.zip
 unzip main.zip
 mv jarkom-modul2-resources-main/abimanyu.E15 /var/www/abimanyu.E15
+service apache2 restart
