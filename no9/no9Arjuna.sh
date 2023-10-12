@@ -21,3 +21,4 @@ echo '
         }
  }
 ' > /etc/nginx/sites-available/lb-arjuna
+ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
