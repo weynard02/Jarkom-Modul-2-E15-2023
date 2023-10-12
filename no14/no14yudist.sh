@@ -1,4 +1,5 @@
-echo ';
+echo '
+;
 ; BIND data file for local loopback interface
 ;
 $TTL    604800
@@ -16,4 +17,5 @@ parikesit IN      A              10.44.3.2
 www.parikesit   IN      CNAME   parikesit
 ns1             IN      A       10.44.3.2       ; IP Abimanyu
 baratayuda      IN      NS      ns1
-@       IN      AAAA    ::1' > /etc/bind/jarkom/abimanyu.E15.com
+@       IN      AAAA    ::1
+' > /etc/bind/jarkom/abimanyu.E15.com

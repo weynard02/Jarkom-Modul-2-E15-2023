@@ -43,5 +43,6 @@ echo 'server {
 
 service php7.0-fpm start
 ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
 service nginx restart
 nginx -t

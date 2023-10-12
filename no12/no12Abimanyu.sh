@@ -20,3 +20,6 @@ echo '<VirtualHost *:80>
         # For most configuration files from conf-available/, whic$        # enabled or disabled at a global level, it i$        #Include conf-available/serve-cgi-bin.conf
 </VirtualHost>
     ' > /etc/apache2/sites-available/abimanyu.E15.com.conf
+
+a2ensite abimanyu.E15.com.conf
+service apache2 restart

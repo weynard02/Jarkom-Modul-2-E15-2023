@@ -15,8 +15,9 @@ echo '
  }
 ' > /etc/nginx/sites-available/lb-arjuna
 ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
-service nginx restart
 echo nameserver 10.44.1.3 > /etc/resolv.conf
+rm -rf /etc/nginx/sites-enabled/default
+service nginx restar
 
 # lynx arjuna.E15.com
 # lynx www.arjuna.E15.com

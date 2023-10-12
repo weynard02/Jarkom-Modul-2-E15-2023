@@ -22,4 +22,6 @@ echo '
  }
 ' > /etc/nginx/sites-available/lb-arjuna
 ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
+echo nameserver 10.44.1.3 > /etc/resolv.conf
+rm -rf /etc/nginx/sites-enabled/default
 service nginx restart

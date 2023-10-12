@@ -19,5 +19,7 @@ echo '<VirtualHost *:80>
 
         ErrorDocument 404 /error/404.html
         ErrorDocument 403 /error/403.html
-        # For most configuration files from conf-available/, whic$        # enabled or disa$        </VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
+        # For most configuration files from conf-available/, whic$        # enabled or disa$        
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
+
 service apache2 restart
