@@ -5,7 +5,7 @@ RewriteCond %{REQUEST_URI} ^/public/images/(.*)(abimanyu)(.*\.(png|jpg|jpeg|webp
 RewriteCond %{REQUEST_URI} !/public/images/abimanyu.png
 RewriteRule abimanyu http://parikesit.abimanyu.E15.com/public/images/abimanyu.png$1 [L,R=301]' > /var/www/parikesit.abimanyu.E15/.htaccess
 
-echo -e '<VirtualHost *:80>
+echo '<VirtualHost *:80>
 
   ServerAdmin webmaster@localhost
   DocumentRoot /var/www/parikesit.abimanyu.E15
