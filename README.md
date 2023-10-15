@@ -206,6 +206,17 @@ www     IN      CNAME   arjuna.E15.com.
 service bind9 restart
 ```
 
+#### Penjelasan :
+1. `apt-get update` dan `apt-get install bind9 -y`: Mengupdate daftar paket dan menginstal BIND9.
+
+2. `echo '...' > /etc/bind/named.conf.local`: Menambahkan konfigurasi untuk zona "arjuna.E15.com" ke dalam file `/etc/bind/named.conf.local`. Ini mendefinisikan zona sebagai zona master dan menunjuk ke file zona.
+
+3. `mkdir /etc/bind/jarkom` dan `cp /etc/bind/db.local /etc/bind/jarkom/arjuna.E15.com`: Membuat direktori `/etc/bind/jarkom` dan menyalin file zona default (`db.local`) ke dalamnya dengan nama `arjuna.E15.com`.
+
+4. `echo '...' > /etc/bind/jarkom/arjuna.E15.com`: Menambahkan catatan zona ke dalam file `/etc/bind/jarkom/arjuna.E15.com`. Ini mencakup catatan SOA (Start of Authority), NS (Name Server), A (Alamat IPv4), CNAME (Alias Kanonikal), dan AAAA (Alamat IPv6).
+
+5. `service bind9 restart`: Merestart layanan BIND9 untuk menerapkan konfigurasi yang baru saja diubah.
+
 #### Nakula / Client yang lain
 Setup nameserver terlebih dahulu yang diarahkan ke IP Node yudhistira.
 
@@ -326,6 +337,23 @@ parikesit IN      A              10.44.3.2
 service bind9 restart
 ```
 
+#### Penjelasan :
+1. `$TTL 604800`: Menentukan nilai Time-to-Live (TTL) untuk catatan zona, dalam detik.
+
+2. `@ IN SOA abimanyu.E15.com. root.abimanyu.E15.com. ( ... )`: Mendefinisikan catatan SOA (Start of Authority) dengan informasi seperti nama domain, alamat email administrator (root.abimanyu.E15.com), dan parameter-parameter lainnya seperti Serial, Refresh, Retry, Expire, dan Negative Cache TTL.
+
+3. `@ IN NS abimanyu.E15.com.`: Menetapkan Name Server untuk zona ini.
+
+4. `@ IN A 10.44.3.2`: Mengaitkan alamat IPv4 10.44.3.2 dengan nama domain "abimanyu.E15.com".
+
+5. `www IN CNAME abimanyu.E15.com.`: Membuat alias "www" yang menunjuk ke domain "abimanyu.E15.com".
+
+6. `parikesit IN A 10.44.3.2`: Menetapkan alamat IPv4 10.44.3.2 untuk host "parikesit".
+
+7. `@ IN AAAA ::1`: Mengaitkan alamat IPv6 (::1) dengan domain "abimanyu.E15.com".
+
+8. `service bind9 restart`: Merestart layanan BIND9 untuk menerapkan konfigurasi baru.
+
 #### Nakula / Client yang lain
 ```
 ping parikesit.abimanyu.E15.com -c 5
@@ -369,6 +397,17 @@ service bind9 restart
 ```
 Sebelum mengakses, jangan lupa untuk mengembalikan nameserver ke DNS Master.
 
+#### Penjelasan :
+1. `zone "3.44.10.in-addr.arpa" { ... }`: Membuat zona untuk reverse DNS dengan alamat IP di subnet 10.44.3.0/24.
+
+2. `cp /etc/bind/db.local /etc/bind/jarkom/3.44.10.in-addr.arpa`: Menyalin file zona default (`db.local`) ke dalam direktori `/etc/bind/jarkom` dengan nama `3.44.10.in-addr.arpa`.
+
+3. `$TTL 604800` hingga `604800 )`: Konfigurasi TTL dan catatan SOA untuk reverse DNS, mirip dengan konfigurasi zona forward DNS.
+
+4. `3.44.10.in-addr.arpa. IN NS abimanyu.E15.com.`: Menetapkan Name Server untuk zona reverse DNS.
+
+5. `2 IN PTR abimanyu.E15.com.`: Mengaitkan alamat IP 10.44.3.2 dengan nama domain "abimanyu.E15.com".
+
 #### Nakula / Client yang lain 
 ```
 host -t PTR 10.44.3.2
@@ -406,6 +445,12 @@ zone "3.44.10.in-addr.arpa" {
 service bind9 restart
 service bind9 stop
 ```
+
+#### Penjelasan :
+1. `also-notify { 10.44.1.2; };`: Ini menunjukkan bahwa server DNS di IP 10.44.1.2 akan menerima notifikasi saat ada perubahan pada zona. Notifikasi digunakan untuk memberi tahu server lain bahwa terjadi perubahan pada zona, sehingga server lain dapat mengambil pembaruan tanpa harus menunggu interval polling yang dijadwalkan. Ini berguna dalam konfigurasi yang melibatkan beberapa server DNS.
+
+2. `allow-transfer { 10.44.1.2; };`: Menentukan server yang diizinkan untuk mentransfer zona dari server ini. Dalam hal ini, hanya server dengan IP 10.44.1.2 yang diizinkan untuk mentransfer zona. Transfer zona adalah proses di mana server DNS mengirimkan salinan lengkap dari zona kepada server DNS lainnya. Pengaturan ini membatasi akses untuk mencegah transfer zona yang tidak diinginkan atau tidak sah.
+
 #### DNS Slave (Werkudara)
 ```
 echo '
@@ -424,6 +469,15 @@ zone "abimanyu.E15.com" {
 ' > /etc/bind/named.conf.local
 service bind9 restart
 ```
+
+#### Penjelasan :
+1. `zone "arjuna.E15.com" { ... };`: Menetapkan zona "arjuna.E15.com" sebagai zona slave. Artinya, server DNS ini akan menerima salinan zona dari server master dengan IP 10.44.1.3.
+
+   - `type slave;`: Menentukan bahwa ini adalah zona slave.
+   - `masters { 10.44.1.3; };`: Menunjukkan IP dari server master yang akan memberikan salinan zona.
+   - `file "/var/lib/bind/arjuna.E15.com";`: Menunjukkan lokasi file di mana zona tersebut akan disimpan pada server DNS ini.
+
+2. `zone "abimanyu.E15.com" { ... };`: Sama seperti di atas, tetapi untuk zona "abimanyu.E15.com".
 
 #### Nakula / Client yang lain 
 ```
@@ -477,6 +531,16 @@ echo 'options {
 
 service bind9 restart
 ```
+
+#### Penjelasan :
+1. `ns1 IN A 10.44.3.2;`: Ini menyatakan bahwa nama server `ns1` memiliki alamat IP 10.44.3.2. Ini adalah catatan A (Address) yang mengaitkan nama server dengan alamat IP.
+
+2. `baratayuda IN NS ns1;`: Ini adalah catatan NS yang menunjukkan bahwa domain `baratayuda` memiliki Name Server dengan nama `ns1`. Dengan kata lain, `ns1` adalah authority untuk zona `baratayuda`.
+
+Dengan tambahan ini, server DNS akan tahu bahwa `ns1` memiliki alamat IP 10.44.3.2, dan `baratayuda` menggunakan `ns1` sebagai Name Server. Ini adalah bagian dari konfigurasi DNS yang membantu dalam mengarahkan permintaan DNS ke server yang benar.
+
+3. `allow-query { any; };`: Ini adalah aturan akses yang memberikan izin kepada semua alamat IP (`any`) untuk melakukan pertanyaan (query) ke server DNS. Dengan kata lain, ini memperbolehkan server DNS untuk menerima permintaan dari siapa pun, tanpa membatasi alamat IP sumber.
+
 #### Werkudara
 Pada DNS Slave Kita perlu untuk mengarahkan zone ke DNS Master agar authoritative tadi dapat jalan. Kita juga perlu mengaktifkan ```allow-query { any; };``` pada DNS Slave.
 ```
@@ -552,6 +616,12 @@ www.rjp IN      CNAME   rjp
 
 service bind9 restart
 ```
+
+#### Penjelasan :
+1. `rjp IN A 10.44.3.2;`: Ini adalah catatan A (Address) yang mengaitkan nama host "rjp" dengan alamat IP 10.44.3.2.
+
+2. `www.rjp IN CNAME rjp;`: Ini adalah catatan CNAME (Canonical Name) yang membuat alias "www.rjp" yang menunjuk ke nama host "rjp". Dengan kata lain, "www.rjp" adalah alias untuk host "rjp".
+
 ### Hasil :
 ![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/6cbb01f7-15bd-42f7-995e-2dca0287be4d)
 
@@ -593,6 +663,51 @@ echo nameserver 10.44.1.3 > /etc/resolv.conf
 rm -rf /etc/nginx/sites-enabled/default
 service nginx restart
 ```
+
+#### Penjelasan :
+1. `apt-get update` dan `apt-get install lynx -y`:
+   - Mengupdate daftar paket.
+   - Menginstal lynx (web browser teks) secara otomatis dengan opsi `-y` untuk mengonfirmasi instalasi.
+
+2. `apt-get install nginx -y`:
+   - Menginstal server web Nginx dengan opsi `-y` untuk mengonfirmasi instalasi.
+
+3. `service nginx start`:
+   - Memulai layanan Nginx.
+
+4. ```
+   echo '
+   upstream deploy  {
+         server 10.44.3.2; #IP Abimanyu
+         server 10.44.3.3; #IP Prabukusuma
+         server 10.44.3.4; #IP Wisanggeni
+   }
+
+   server {
+         listen 80;
+         server_name arjuna.E15.com www.arjuna.E15.com;
+
+         location / {
+         proxy_pass http://deploy;
+         }
+   }
+   ' > /etc/nginx/sites-available/lb-arjuna
+   ```
+   - Mendefinisikan blok `upstream` untuk menyimpan server-server yang akan di-load balance.
+   - Konfigurasi server Nginx dengan nama `arjuna.E15.com` dan `www.arjuna.E15.com`.
+   - Menggunakan `proxy_pass` untuk meneruskan permintaan ke server yang ditentukan dalam blok `upstream`.
+
+5. `ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled`:
+   - Membuat symlink dari konfigurasi yang baru saja dibuat ke direktori `sites-enabled` untuk mengaktifkan konfigurasi tersebut.
+
+6. `echo nameserver 10.44.1.3 > /etc/resolv.conf`:
+   - Mengatur nameserver untuk resolusi DNS.
+
+7. `rm -rf /etc/nginx/sites-enabled/default`:
+   - Menghapus konfigurasi default yang dapat mengganggu konfigurasi load balancer.
+
+8. `service nginx restart`:
+   - Merestart layanan Nginx untuk menerapkan konfigurasi baru.
 
 #### Prabukusuma, Abimanyu, Wisanggeni
 ```
@@ -645,6 +760,93 @@ rm -rf /etc/nginx/sites-enabled/default
 service nginx restart
 nginx -t
 ```
+
+#### Penjelasan :
+1. ```
+   apt-get update && apt install nginx php php-fpm -y
+   ```
+   - Perintah ini bertujuan untuk mengupdate daftar paket dan menginstal Nginx, PHP, dan PHP-FPM secara otomatis.
+
+2. ```
+   apt-get install lynx -y
+   ```
+   - Menginstal lynx, web browser teks, yang mungkin diperlukan untuk keperluan pengujian atau manajemen server.
+
+3. ```
+   mkdir /var/www/jarkom
+   ```
+   - Membuat direktori `/var/www/jarkom` untuk menyimpan konten web.
+
+4. ```
+   echo '<?php
+   $hostname = gethostname();
+   $date = date('Y-m-d H:i:s');
+   $php_version = phpversion();
+   $username = get_current_user();
+
+   echo "Hello World!<br>";
+   echo "Saya adalah: $username<br>";
+   echo "Saat ini berada di: $hostname<br>";
+   echo "Versi PHP yang saya gunakan: $php_version<br>";
+   echo "Tanggal saat ini: $date<br>";
+   ?>' > /var/www/jarkom/index.php
+   ```
+   - Membuat file `index.php` dengan skrip PHP yang mencetak informasi dasar seperti nama host, waktu, versi PHP, dan nama pengguna.
+
+5. ```
+   echo 'server {
+       listen 80;
+       root /var/www/jarkom;
+       index index.php index.html index.htm;
+       server_name _;
+       location / {
+           try_files $uri $uri/ /index.php?$query_string;
+       }
+       # pass PHP scripts to FastCGI server
+       location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+       }
+       location ~ /\.ht {
+           deny all;
+       }
+       error_log /var/log/nginx/jarkom_error.log;
+       access_log /var/log/nginx/jarkom_access.log;
+   }' > /etc/nginx/sites-available/jarkom
+   ```
+   - Konfigurasi server Nginx untuk mengakses konten PHP.
+   - `listen 80;`: Menetapkan server untuk mendengarkan pada port 80.
+   - `root /var/www/jarkom;`: Menentukan direktori root untuk file web.
+   - `index index.php index.html index.htm;`: Menetapkan urutan indeks file.
+   - Konfigurasi `location /` untuk mencoba file-file tertentu dan memanggil `index.php` jika tidak ada yang cocok.
+   - Konfigurasi `location ~ \.php$` untuk meneruskan permintaan PHP ke server FastCGI.
+   - `error_log` dan `access_log` menentukan lokasi file log.
+
+6. ```
+   service php7.0-fpm start
+   ```
+   - Memulai layanan PHP-FPM.
+
+7. ```
+   ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+   ```
+   - Membuat symlink dari konfigurasi yang baru saja dibuat ke direktori `sites-enabled` untuk mengaktifkan konfigurasi tersebut.
+
+8. ```
+   rm -rf /etc/nginx/sites-enabled/default
+   ```
+   - Menghapus konfigurasi default Nginx untuk mencegah konflik.
+
+9. ```
+   service nginx restart
+   ```
+   - Merestart layanan Nginx untuk menerapkan konfigurasi baru.
+
+10. ```
+   nginx -t
+    ```
+   - Memeriksa sintaks konfigurasi Nginx untuk memastikan tidak ada kesalahan.
+
 
 #### Nakula / Client yang lain
 //Testing
