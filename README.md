@@ -842,12 +842,6 @@ nginx -t
    ```
    - Merestart layanan Nginx untuk menerapkan konfigurasi baru.
 
-10. ```
-   nginx -t
-    ```
-   - Memeriksa sintaks konfigurasi Nginx untuk memastikan tidak ada kesalahan.
-
-
 #### Nakula / Client yang lain
 //Testing
 ```
