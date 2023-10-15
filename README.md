@@ -363,3 +363,230 @@ Kemudian direstart dan dapat testing www.parikesit.abimanyu.yyy.com/js
 
 
 
+## 17. Agar aman, buatlah konfigurasi agar www.rjp.baratayuda.abimanyu.yyy.com hanya dapat diakses melalui port 14000 dan 14400.
+Untuk soal ini, kita perlu membuat 2 konfigurasi untuk www.rjp.baratayuda.abimanyu.E15.com untuk port 14000 dan www.rjp.baratayuda.abimanyu.E15.com untuk port 14400.
+
+Langkah pertama kita mencopy template dari konfigurasi sebelumnya dan mengedit konfigurasi sebagai berikut:
+```
+cp /etc/apache2/sites-available/abimanyu.E15.com.conf /etc/apache2/sites-available/rjp.baratayuda.abimanyu.E15.com-14000.conf
+cp /etc/apache2/sites-available/abimanyu.E15.com.conf /etc/apache2/sites-available/rjp.baratayuda.abimanyu.E15.com-14400.conf
+
+```
+Di rjp.baratayuda.abimanyu.E15.com-14000.conf:
+```
+'<VirtualHost *:14000>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.E15
+        ServerName rjp.baratayuda.abimanyu.E15.com
+        ServerAlias www.rjp.baratayuda.abimanyu.E15.com
+
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, alert, emerg.        # It is also possible to configure the loglevel for parti$        # modules, $        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, whic$        # enabled or disabled at a $        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+```
+Penjelasan: mengganti port 14000 dan mengganti ServerName, Alias, dan Document Root
+
+Di rjp.baratayuda.abimanyu.E15.com-14400.conf:
+```
+<VirtualHost *:14400>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.E15
+        ServerName rjp.baratayuda.abimanyu.E15.com
+        ServerAlias www.rjp.baratayuda.abimanyu.E15.com
+
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, alert, emerg.        # It is also possible to configure the loglevel for parti$        # modules, $        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, whic$        # enabled or disabled at a $        #Include conf-available/serve-cgi-bin.conf
+        </VirtualHost>
+```
+Penjelasan: mengganti port 14400 dan mengganti ServerName, Alias, dan Document Root
+
+
+Setelah itu, kita perlu mendaftar port-port tersebut di dalam /etc/apache2/ports.conf
+```
+Listen 80
+Listen 14000
+Listen 14400
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>
+```
+
+Kemudian mengaktifkan dua konfigurasi tersebut:
+```
+a2ensite rjp.baratayuda.abimanyu.E15.com-14000.conf
+a2ensite rjp.baratayuda.abimanyu.E15.com-14400.conf
+```
+
+dan memindahkan resources yang sebelum didownload ke DocumentRoot
+```
+mkdir /var/www/rjp.baratayuda.abimanyu.E15
+
+mv /jarkom-modul2-resources-main/rjp.baratayuda.abimanyu.E15 /var/www/
+```
+
+Terakhir, melakukan restart dan lakukan testing
+```
+service apache2 restart
+```
+
+### Hasil:
+
+lynx www.rjp.baratayuda.abimanyu.E15.com:14000
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/09b8f95a-c0a5-4cf2-852b-88a2150b88bc)
+
+lynx www.rjp.baratayuda.abimanyu.E15.com:14400
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/e5421eaa-6a12-4966-9d1b-3252031a040b)
+
+lynx www.rjp.baratayuda.abimanyu.E15.com:14200
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/f924269f-d9ca-4975-8d94-2fad9c9625d1)
+
+
+## 18. Untuk mengaksesnya buatlah autentikasi username berupa “Wayang” dan password “baratayudayyy” dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada /var/www/rjp.baratayuda.abimanyu.yyy.
+
+Untuk membuat autentikasi, pertama kita perlu membuat file .htpasswd dengan command line sebagai berikut
+```
+htpasswd -b -c /etc/apache2/.htpasswd Wayang baratayudaE15
+```
+
+Penjelasan:
+- htpasswd membuat file pada /etc/apache2/.htpasswd yang berisi username Wayang dan password baratayudaE15
+
+Kemudian setelah itu ditambahkan pada konfigurasi setiap port masing-masing dengan perintah berikut:
+```
+<Directory /var/www/rjp.baratayuda.abimanyu.E15>
+                AuthType Basic
+                AuthName "SPYxFAMILY MOVIE ENTER"
+                AuthUserFile /etc/apache2/.htpasswd
+                Require valid-user
+</Directory>
+```
+
+/etc/apache2/sites-available/rjp.baratayuda.abimanyu.E15.com-14000.conf
+```
+<VirtualHost *:14000>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.E15
+        ServerName rjp.baratayuda.abimanyu.E15.com
+        ServerAlias www.rjp.baratayuda.abimanyu.E15.com
+
+        <Directory /var/www/rjp.baratayuda.abimanyu.E15>
+                AuthType Basic
+                AuthName "SPYxFAMILY MOVIE ENTER"
+                AuthUserFile /etc/apache2/.htpasswd
+                Require valid-user
+        </Directory>
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, alert, emerg.        # It is also possible to configure the loglevel for parti$        # modules, $
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, whic$        # enabled or disabled at a $        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+```
+
+/etc/apache2/sites-available/rjp.baratayuda.abimanyu.E15.com-14400.conf
+```
+<VirtualHost *:14400>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.E15
+        ServerName rjp.baratayuda.abimanyu.E15.com
+        ServerAlias www.rjp.baratayuda.abimanyu.E15.com
+
+        <Directory /var/www/rjp.baratayuda.abimanyu.E15>
+                AuthType Basic
+                AuthName "SPYxFAMILY MOVIE ENTER"
+                AuthUserFile /etc/apache2/.htpasswd
+                Require valid-user
+        </Directory>
+
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, alert, emerg.        # It is also possible to configure the loglevel for parti$        # modules, $
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+        
+        # For most configuration files from conf-available/, whic$        # enabled or disabled at a $        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+```
+
+Kemudian direstart dan melakukan testing misalkan pada www.rjp.baratayuda.abimanyu.E15.com:14000
+
+### Hasil:
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/3a505a02-d35a-4a56-8934-9b085e5ccfc2)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/ecf96cd5-cd29-475d-bb82-08bafa86a63d)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/5db839a1-b2ca-4c37-b6e4-c47dbdb6d069)
+
+Jika autentikasi benar, maka harusnya keluar tampilannya
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/8e3e3e38-bca1-423b-85c5-51d717e27787)
+
+
+## 19. Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke www.abimanyu.yyy.com (alias)
+Untuk soal ini, kita membuat default-abimanyu.E15.com saja yang merepresentasikan ServerNamenya merupakan IP Abimanyu. Kemudian, kita dapat menambahkan perintah pada konfigurasi sebagai berikut:
+```
+RedirectPermanent / http://www.abimanyu.E15.com
+```
+Penjelasan: artinya bahwa setiap kali mengakses IP Abimanyu maka akan langsung dilemparkan pada http://www.abimanyu.E15.com
+
+Pembuatan konfigurasi sebagai berikut
+```
+cp /etc/apache2/sites-available/abimanyu.E15.com.conf /etc/apache2/sites-available/default-abimanyu.E15.com.conf
+```
+
+/etc/apache2/sites-available/default-abimanyu.E15.com.conf
+```
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostn$        # the server uses to identi$
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/abimanyu.E15
+        ServerName 10.44.3.2
+        RedirectPermanent / http://www.abimanyu.E15.com
+
+        # Available loglevels: trace8, ..., trace1, debug, info, $        # error, crit, alert, emerg.        # It is also possible to configure the loglevel for parti$        # modules, $        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, whic$        # enabled or disabled at a $        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+```
+Penjelasan 
+Kemudian dinyalakan sitenya dan direstart serta ditesting
+```
+a2ensite default-abimanyu.E15.com.conf
+service apache2 restart
+```
+
+### Hasil:
+lynx 10.44.3.2 // IP Abimanyu
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/2830db57-d5b5-4a21-996a-5976c84b5147)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/503ba2aa-f709-45d4-be2f-16c4c08c0648)
+
+
+
