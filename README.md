@@ -1027,9 +1027,19 @@ lynx parikesit.abimanyu.E15.com/public/images/abimanyu-student.jpg
 
 ![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/035ad515-e932-497e-b10c-caef68098adb)
 
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/decb668f-31b7-40e1-8056-8f778bd9e48d)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/b46c05b1-bc1a-47f8-9acf-4c495a99d4f0)
+
+
 lynx parikesit.abimanyu.E15.com/public/images/not-abimanyu.png
 
 ![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/76fc8f58-6229-4797-b37f-2f12f8de9c61)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/ebd74d97-6082-4ab1-9598-48660cfe08e5)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/4c35c157-0e07-4214-a619-18dee1d88470)
+
 
 
 ## Kendala:
