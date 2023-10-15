@@ -557,10 +557,184 @@ service bind9 restart
 
 ## 9. Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.
 
+Mulailah dengan memastikan bahwa Arjuna telah dikonfigurasi dengan benar, termasuk konfigurasi Nginx dan peraturan load balancing yang sesuai. Pilih algoritma load balancing yang cocok dengan kebutuhan Anda, seperti round-robin atau algoritma lain yang sesuai.
+
+Selanjutnya, lakukan penyebaran (deployment) pada setiap pekerja (worker). Ini melibatkan mengunggah aplikasi atau layanan web yang akan di-load balance ke setiap worker. Pastikan bahwa semua worker telah dikonfigurasi dengan benar dan siap untuk menangani lalu lintas web.
+
+Setelah semua konfigurasi dan penyebaran selesai, Arjuna akan berfungsi sebagai load balancer yang mendistribusikan lalu lintas web ke worker yang tersedia.
+
+#### Load balancer (Arjuna)
+```
+apt-get update
+apt-get install lynx -y
+apt-get install nginx -y
+
+
+service nginx start
+
+echo '
+  upstream deploy  {
+        server 10.44.3.2; #IP Abimanyu
+        server 10.44.3.3; #IP Prabukusuma
+        server 10.44.3.4; #IP Wisanggeni
+ }
+
+ server {
+        listen 80;
+        server_name arjuna.E15.com www.arjuna.E15.com;
+
+        location / {
+        proxy_pass http://deploy;
+        }
+ }
+' > /etc/nginx/sites-available/lb-arjuna
+ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
+echo nameserver 10.44.1.3 > /etc/resolv.conf
+rm -rf /etc/nginx/sites-enabled/default
+service nginx restart
+```
+
+#### Prabukusuma, Abimanyu, Wisanggeni
+```
+apt-get update && apt install nginx php php-fpm -y
+apt-get install lynx -y
+mkdir /var/www/jarkom
+echo '<?php
+$hostname = gethostname();
+$date = date('Y-m-d H:i:s');
+$php_version = phpversion();
+$username = get_current_user();
+
+echo "Hello World!<br>";
+echo "Saya adalah: $username<br>";
+echo "Saat ini berada di: $hostname<br>";
+echo "Versi PHP yang saya gunakan: $php_version<br>";
+echo "Tanggal saat ini: $date<br>";
+?>' > /var/www/jarkom/index.php
+echo 'server {
+
+ 	listen 80;
+
+ 	root /var/www/jarkom;
+
+ 	index index.php index.html index.htm;
+ 	server_name _;
+
+ 	location / {
+ 			try_files $uri $uri/ /index.php?$query_string;
+ 	}
+
+ 	# pass PHP scripts to FastCGI server
+ 	location ~ \.php$ {
+ 	include snippets/fastcgi-php.conf;
+ 	fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+ 	}
+
+ location ~ /\.ht {
+ 			deny all;
+ 	}
+
+ 	error_log /var/log/nginx/jarkom_error.log;
+ 	access_log /var/log/nginx/jarkom_access.log;
+ }
+' > /etc/nginx/sites-available/jarkom
+
+service php7.0-fpm start
+ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+service nginx restart
+nginx -t
+```
+
+#### Nakula / Client yang lain
+//Testing
+```
+lynx http://10.44.3.2
+lynx http://10.44.3.3
+lynx http://10.44.3.4
+lynx http://10.44.3.5
+lynx http://arjuna.E15.com
+```
+
+## Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/d8a4ae90-9c26-44b3-8c14-198496a312f2)
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/366db409-13cc-4e12-889f-d4fd9fc13ca4)
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/87f251b4-1be8-4078-ad94-5591ca4c0326)
+
 ## 10. Kemudian gunakan algoritma Round Robin untuk Load Balancer pada Arjuna. Gunakan server_name pada soal nomor 1. Untuk melakukan pengecekan akses alamat web tersebut kemudian pastikan worker yang digunakan untuk menangani permintaan akan berganti ganti secara acak. Untuk webserver di masing-masing worker wajib berjalan di port 8001-8003. Contoh
     - Prabakusuma:8001
     - Abimanyu:8002
     - Wisanggeni:8003
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Karena telah berhasil melakukan deployment pada nomor 9. Hanya perlu mengubah masing-masing port pada worker menuju port yang telah ditentukan yaitu Prabakusuma:8001, Abimanyu:8002, Wisanggeni:8003. Kita juga perlu mengubah port load-balancing dengan menambahkan :800X pada masing-masing server. X adalah port yang telah ditentukan sesuai worker masing-masing.
+
+#### Load Balancer (Arjuna)
+```
+echo '
+  upstream deploy  {
+        server 10.44.3.3:8001; #IP Prabukusuma
+        server 10.44.3.2:8002; #IP Abimanyu
+        server 10.44.3.4:8003; #IP Wisanggeni
+ }
+
+ server {
+        listen 80;
+        server_name arjuna.E15.com www.arjuna.E15.com;
+
+        location / {
+        proxy_pass http://deploy;
+        }
+ }
+' > /etc/nginx/sites-available/lb-arjuna
+ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
+echo nameserver 10.44.1.3 > /etc/resolv.conf
+rm -rf /etc/nginx/sites-enabled/default
+service nginx restart
+```
+
+#### Prabukusuma, Abimanyu, Wisanggeni
+X adalah port yang telah ditentukan sesuai worker masing-masing. 
+```
+echo 'server {
+
+ 	listen 800X;
+
+ 	root /var/www/jarkom;
+
+ 	index index.php index.html index.htm;
+ 	server_name _;
+
+ 	location / {
+ 			try_files $uri $uri/ /index.php?$query_string;
+ 	}
+
+ 	# pass PHP scripts to FastCGI server
+ 	location ~ \.php$ {
+ 	include snippets/fastcgi-php.conf;
+ 	fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+ 	}
+
+ location ~ /\.ht {
+ 			deny all;
+ 	}
+
+ 	error_log /var/log/nginx/jarkom_error.log;
+ 	access_log /var/log/nginx/jarkom_access.log;
+ }
+' > /etc/nginx/sites-available/jarkom
+
+service php7.0-fpm start
+ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+service nginx restart
+nginx -t
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/d8a4ae90-9c26-44b3-8c14-198496a312f2)
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/366db409-13cc-4e12-889f-d4fd9fc13ca4)
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/87f251b4-1be8-4078-ad94-5591ca4c0326)
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/6480740d-1b59-4712-830f-b22c8f41c94b)
 
 ## 11. Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
 
