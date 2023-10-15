@@ -115,7 +115,7 @@ iface eth0 inet static
 	netmask 255.255.255.0
 	gateway 10.44.3.1
 ```
-## Langkah Awal
+## Setup
 Pada .bashrc menggunakan nano :
 
 ### Pandudewanata
@@ -151,7 +151,7 @@ apt-get install lynx -y
 
 Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Disini kita perlu melakukan testing terhadap semua node yang ada. Disini kami melakukan testing pada client nakula dan sadewa.
 
-#### Nakula dan Sadewa
+#### Semua Node
 ```
 ping google.com -c 5
 ```
@@ -166,7 +166,216 @@ ping google.com -c 5
 Pada node DNS Master (Yudhistira), kita perlu melakukan setup terlebih dahulu sebagai berikut:
 
 #### Yudhistira
+```
+apt-get update
+apt-get install bind9 -y
 
+echo '
+zone "arjuna.E15.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.E15.com";
+};
+
+' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/jarkom
+cp /etc/bind/db.local /etc/bind/jarkom/arjuna.E15.com
+
+
+
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     arjuna.E15.com. root.arjuna.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      arjuna.E15.com.
+@       IN      A       10.44.3.5
+www     IN      CNAME   arjuna.E15.com.
+@       IN      AAAA    ::1
+
+' > /etc/bind/jarkom/arjuna.E15.com
+
+service bind9 restart
+```
+
+#### Nakula / Client yang lain
+Setup nameserver terlebih dahulu yang diarahkan ke IP Node yudhistira.
+
+```
+ping arjuna.E15.com -c 5
+ping www.arjuna.E15.com -c 5
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/6e42ff51-d42d-43c5-baaa-d5a6dcef5d12)
+
+## 3. Dengan cara yang sama seperti soal nomor 2, buatlah website utama dengan akses ke abimanyu.yyy.com dan alias www.abimanyu.yyy.com.
+
+Pada node DNS Master (Yudhistira), kita perlu melakukan setup terlebih dahulu sebagai berikut:
+
+#### Yudhistira
+```
+apt-get update
+apt-get install bind9 -y
+
+echo '
+zone "arjuna.E15.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.E15.com";
+};
+
+zone "abimanyu.E15.com" {
+        type master;
+        file "/etc/bind/jarkom/abimanyu.E15.com";
+};
+
+' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/jarkom
+cp /etc/bind/db.local /etc/bind/jarkom/arjuna.E15.com
+cp /etc/bind/db.local /etc/bind/jarkom/abimanyu.E15.com
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     arjuna.E15.com. root.arjuna.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      arjuna.E15.com.
+@       IN      A       10.44.3.5
+www     IN      CNAME   arjuna.E15.com.
+@       IN      AAAA    ::1
+
+' > /etc/bind/jarkom/arjuna.E15.com
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.E15.com. root.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.E15.com.
+@       IN      A       10.44.3.2
+www     IN      CNAME   abimanyu.E15.com.
+@       IN      AAAA    ::1
+
+' > /etc/bind/jarkom/abimanyu.E15.com
+
+service bind9 restart
+```
+
+#### Nakula / Client yang lain
+Setup nameserver terlebih dahulu yang diarahkan ke IP Node yudhistira.
+
+```
+ping abimanyu.E15.com -c 5
+ping www.abimanyu.E15.com -c 5
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/a18706b7-0eed-44ca-94f3-da7a729d569a)
+
+## 4. Kemudian, karena terdapat beberapa web yang harus di-deploy, buatlah subdomain parikesit.abimanyu.yyy.com yang diatur DNS-nya di Yudhistira dan mengarah ke Abimanyu.
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Untuk subdomain, kita perlu menambahkan ```parikesit``` dengan type A yang mengarah langsung ke IP Abimanyu.
+
+#### Yudhistira
+Cukup menambahkan ```parikesit IN    A       10.44.3.2     ; IP Abimanyu' > /etc/bind/jarkom/abimanyu.E15.com saja pada DNS Master.
+
+```
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.E15.com. root.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@         IN      NS      abimanyu.E15.com.
+@         IN      A       10.44.3.2
+www       IN      CNAME   abimanyu.E15.com.
+parikesit IN      A              10.44.3.2
+@           IN      AAAA    ::1
+
+' > /etc/bind/jarkom/abimanyu.E15.com
+
+service bind9 restart
+```
+
+#### Nakula / Client yang lain
+```
+ping parikesit.abimanyu.E15.com -c 5
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/2664a95e-f877-4b61-8158-eb599db82347)
+
+## 5. Buat juga reverse domain untuk domain utama. (Abimanyu saja yang direverse)
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Yang akan kita reverse domainnya adalah Abimanyu.
+Untuk melakukan reverse domain. Kita perlu untuk mengetahui IP dari Abimanyu. Karena IP Abimanyu kelompok kami adalah 10.44.3.2, maka kita perlu mengubahnya menjadi 2.3.44.10.
+
+#### Yudhistira
+```
+zone "3.44.10.in-addr.arpa" {
+    type master;
+    file "/etc/bind/jarkom/3.44.10.in-addr.arpa";
+};
+
+cp /etc/bind/db.local /etc/bind/jarkom/3.44.10.in-addr.arpa
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.E15.com. root.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+3.44.10.in-addr.arpa.   IN      NS      abimanyu.E15.com.
+2                       IN      PTR     abimanyu.E15.com.
+
+'  > /etc/bind/jarkom/3.44.10.in-addr.arpa
+
+service bind9 restart
+```
+Sebelum mengakses, jangan lupa untuk mengembalikan nameserver ke DNS Master.
+
+#### Nakula / Client yang lain 
+```
+host -t PTR 10.44.3.2
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/c8417347-7a6b-4e02-92d3-9b96f84319ac)
 
 ## 11. Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
 
