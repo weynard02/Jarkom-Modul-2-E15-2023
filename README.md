@@ -18,8 +18,154 @@
     </tr>
 </table>
 
+## Topologi 
+
+![04](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/091df6af-e677-4d8f-af41-6b23d5f64f34)
+
+## Config
+
+### Pandudewanata 
+```
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+	address 10.44.1.1
+	netmask 255.255.255.0
+
+auto eth2
+iface eth2 inet static
+	address 10.44.2.1
+	netmask 255.255.255.0
+
+auto eth3
+iface eth3 inet static
+	address 10.44.3.1
+	netmask 255.255.255.0
+```
+### Werkudara
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.1.2
+	netmask 255.255.255.0
+	gateway 10.44.1.1
+```
+
+### Yudhistira
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.1.3
+	netmask 255.255.255.0
+	gateway 10.44.1.1
+```
+
+### Nakula
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.2.2
+	netmask 255.255.255.0
+	gateway 10.44.2.1
+```
+
+### Sadewa
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.2.3
+	netmask 255.255.255.0
+	gateway 10.44.2.1
+```
+
+### Abimanyu
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.3.2
+	netmask 255.255.255.0
+	gateway 10.44.3.1
+```
+
+### Prabukusuma
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.3.3
+	netmask 255.255.255.0
+	gateway 10.44.3.1
+```
+
+### Wisanggeni
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.3.4
+	netmask 255.255.255.0
+	gateway 10.44.3.1
+```
+
+### Arjuna
+```
+auto eth0
+iface eth0 inet static
+	address 10.44.3.5
+	netmask 255.255.255.0
+	gateway 10.44.3.1
+```
+## Langkah Awal
+Pada .bashrc menggunakan nano :
+
+### Pandudewanata
+```
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 10.44.0.0/16
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+```
+
+### DNSMaster dan DNSSlave
+```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+```
+
+### Client
+```
+echo -e '
+nameserver 10.44.1.3 # IP Yudhistira
+nameserver 10.44.1.2 # IP Werkudara
+nameserver 192.168.122.1
+' > /etc/resolv.conf
+apt-get update
+apt-get install dnsutils -y
+apt-get install lynx -y
+```
+
+# Soal
+
 ## 1. Yudhistira akan digunakan sebagai DNS Master, Werkudara sebagai DNS Slave, Arjuna merupakan Load Balancer yang terdiri dari beberapa Web Server yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Buatlah topologi dengan pembagian [sebagai berikut](https://docs.google.com/spreadsheets/d/1OqwQblR_mXurPI4gEGqUe7v0LSr1yJViGVEzpMEm2e8/edit#gid=1475903193). Folder topologi dapat diakses pada [ drive berikut](https://drive.google.com/drive/folders/1Ij9J1HdIW4yyPEoDqU1kAwTn_iIxg3gk) 
 
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/f8746129-3008-45f1-8ea6-2b22813d65d0)
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Disini kita perlu melakukan testing terhadap semua node yang ada. Disini kami melakukan testing pada client nakula dan sadewa.
+
+#### Nakula dan Sadewa
+```
+ping google.com -c 5
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/aa4e3cee-3722-4f7d-a4b1-1e28ca6b05e4)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/31b7870c-ee63-4a0b-8bc6-a5d061c275f8)
+
+## 2. Buatlah website utama pada node arjuna dengan akses ke arjuna.yyy.com dengan alias www.arjuna.yyy.com dengan yyy merupakan kode kelompok.
+
+Pada node DNS Master (Yudhistira), kita perlu melakukan setup terlebih dahulu sebagai berikut:
+
+#### Yudhistira
 
 
 ## 11. Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
