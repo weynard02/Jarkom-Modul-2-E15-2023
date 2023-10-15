@@ -589,4 +589,92 @@ lynx 10.44.3.2 // IP Abimanyu
 ![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/503ba2aa-f709-45d4-be2f-16c4c08c0648)
 
 
+## 20. Karena website www.parikesit.abimanyu.yyy.com semakin banyak pengunjung dan banyak gambar gambar random, maka ubahlah request gambar yang memiliki substring “abimanyu” akan diarahkan menuju abimanyu.png.
 
+Untuk soal ini, jika kita lihat dari resource ada banyak macam-macam gambar:
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/caac6b4d-41c8-448c-b75d-cb74d1d158a2)
+
+Soal meminta apabila kita mencoba access/request gambar yang mengandung substring abimanyu akan diarahkan menuju abimanyu.png (rewrite) 
+
+Agar dapat melakukan rewrite itu, kita perlu membuat .htaccess pada DocumentRoot `/var/www/parikesit.abimanyu.E15/.htaccess` yang berisi berikut:
+```
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/public/images/(.*)(abimanyu)(.*\.(png|jpg|jpeg|webp|bmp|tiff|svg))
+RewriteCond %{REQUEST_URI} !/public/images/abimanyu.png
+RewriteRule abimanyu http://parikesit.abimanyu.E15.com/public/images/abimanyu.png$1 [L,R=301]
+```
+Penjelasan:
+- Rewrite dinyalakan
+- Kondisi jika menemukan request uri /public/images/(mengandung substring abimanyu).(berextension tipe file gambar)
+- dan kondisi jika /public/images/abimanyu.png
+- maka akan melakukan rewrite rule di mana rewrite menjadi http://parikesit.abimanyu.E15.com/public/images/abimanyu.png
+
+Kemudian menambahkan pada konfigurasi /etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf dengan perintah ini:
+```
+<Directory /var/www/parikesit.abimanyu.E15>
+    Options +FollowSymLinks -Multiviews
+    AllowOverride All
+</Directory>
+```
+Penjelasan:
+- `+FollowSymLinks`: mod_rewrite berjalan
+- `-Multiviews`: mod_negotiation tidak berjalan karena bisa mengganggu mod_rewrite karena juga berperan sebagai rewrite
+- `AllowOverride All`: .htaccess berjalan
+
+/etc/apache2/sites-available/parikesit.abimanyu.E15.com.conf
+```
+<VirtualHost *:80>
+
+  ServerAdmin webmaster@localhost
+  DocumentRoot /var/www/parikesit.abimanyu.E15
+  ServerName parikesit.abimanyu.E15.com
+  ServerAlias www.parikesit.abimanyu.E15.com
+
+  <Directory /var/www/parikesit.abimanyu.E15/public>
+          Options +Indexes
+  </Directory>
+
+  <Directory /var/www/parikesit.abimanyu.E15/secret>
+          Options -Indexes
+  </Directory>
+
+  <Directory /var/www/parikesit.abimanyu.E15>
+          Options +FollowSymLinks -Multiviews
+          AllowOverride All
+  </Directory>
+
+  <Directory /var/www/parikesit.abimanyu.E15/public/js>
+        Options +Indexes
+  </Directory>
+
+  Alias "/js" "/var/www/parikesit.abimanyu.E15/public/js"
+
+  ErrorDocument 404 /error/404.html
+  ErrorDocument 403 /error/403.html
+
+  ErrorLog ${APACHE_LOG_DIR}/error.log
+  CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+Kemudian kita perlu menyalakan mod rewrite dan direstart apache2nya
+```
+a2enmod rewrite
+
+service apache2 restart
+```
+
+### Hasil:
+lynx parikesit.abimanyu.E15.com/public/images/abimanyu-student.jpg
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/035ad515-e932-497e-b10c-caef68098adb)
+
+lynx parikesit.abimanyu.E15.com/public/images/not-abimanyu.png
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/90879937/76fc8f58-6229-4797-b37f-2f12f8de9c61)
+
+
+## Kendala:
+- Pada nomor 11, sempat kesulitan mengapa saat apache2 direstart, membuat error bahwa port 80 sudah dipakai padahal baru pertama kali jalan. Ternyata masalahnya adalah page default nginx (yang menggunakan port80) belum diremove
+- Pada nomor 13, sempat kesulitan mengapa alias tidak berjalan (www.parikesit.abimanyu.E15.com). Ternyata karena soal sebelumnya tidak diminta membuat aliasnya sehingga belum dibuat pada DNS-Masternya
+- Terdapat beberapa konfigurasi di luar modul, sehingga perlu mencari tau melalui google (ErrorDocument, htpasswd, RedirectPermanent, dll)
