@@ -377,6 +377,191 @@ host -t PTR 10.44.3.2
 ### Hasil :
 ![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/c8417347-7a6b-4e02-92d3-9b96f84319ac)
 
+## 6. Agar dapat tetap dihubungi ketika DNS Server Yudhistira bermasalah, buat juga Werkudara sebagai DNS Slave untuk domain utama.
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Untuk mengerjakan DNS Slave, kita memerlukan beberapa konfigurasi pada DNS Master (Yudhistira) dan DNS Slave (Werkudara).
+
+#### Yudhistira
+```
+echo '
+zone "arjuna.E15.com" {
+        type master;
+        also-notify { 10.44.1.2; }; // IP Werkudara
+    allow-transfer { 10.44.1.2; }; // IP Werkudara
+        file "/etc/bind/jarkom/arjuna.E15.com";
+};
+
+zone "abimanyu.E15.com" {
+        type master;
+        also-notify { 10.44.1.2; }; // IP Werkudara
+    allow-transfer { 10.44.1.2; }; // IP Werkudara
+        file "/etc/bind/jarkom/abimanyu.E15.com";
+};
+
+zone "3.44.10.in-addr.arpa" {
+    type master;
+    file "/etc/bind/jarkom/3.44.10.in-addr.arpa";
+};
+
+service bind9 restart
+service bind9 stop
+```
+#### DNS Slave (Werkudara)
+```
+echo '
+zone "arjuna.E15.com" {
+    type slave;
+    masters { 10.44.1.3; }; // IP Yudhistira
+    file "/var/lib/bind/arjuna.E15.com";
+};
+
+zone "abimanyu.E15.com" {
+    type slave;
+    masters { 10.44.1.3; }; // IP Yudhistira
+    file "/var/lib/bind/abimanyu.E15.com";
+};
+
+' > /etc/bind/named.conf.local
+service bind9 restart
+```
+
+#### Nakula / Client yang lain 
+```
+ping abimanyu.a09.com -c 5
+ping www.abimanyu.a09.com -c 5
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/53a2cfb9-c152-4033-aafe-99f27b2a48f4)
+
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/2727523b-729f-4cbc-b134-61365f47b06c)
+
+## 7. Seperti yang kita tahu karena banyak sekali informasi yang harus diterima, buatlah subdomain khusus untuk perang yaitu baratayuda.abimanyu.yyy.com dengan alias www.baratayuda.abimanyu.yyy.com yang didelegasikan dari Yudhistira ke Werkudara dengan IP menuju ke Abimanyu dalam folder Baratayuda.
+ 
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Untuk melakukan Delegasi subdomain. Kita memerlukan beberapa configurasi pada DNS Master dan DNS Slave. Kita juga memerlukan bantuan allow-query { any; }; pada `DNS Master dan Slave. Serta kita memerlukan NS karena NS digunakan untuk delegasi zona DNS untuk menggunakan authoritative name server yang diberikan.
+
+#### Yudhistira
+Pada DNS Master kita perlu menambahkan ``ns1 IN  A 10.44.3.2 ;```. Kita juga perlu mengaktifkan ```allow-query { any; };``` pada DNS Master
+```
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.E15.com. root.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.E15.com.
+@       IN      A       10.44.3.2	; IP Abimanyu
+www     IN      CNAME   abimanyu.E15.com.
+parikesit IN      A     10.44.3.2	; IP Abimanyu
+ns1             IN      A       10.44.3.2	; IP Abimanyu
+baratayuda      IN      NS      ns1
+@       IN      AAAA    ::1
+
+
+' > /etc/bind/jarkom/abimanyu.E15.com
+
+
+echo 'options {
+        directory "/var/cache/bind";
+        allow-query{any;};
+
+        auth-nxdomain no;    # conform to RFC1035
+        listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+
+service bind9 restart
+```
+#### Werkudara
+Pada DNS Slave Kita perlu untuk mengarahkan zone ke DNS Master agar authoritative tadi dapat jalan. Kita juga perlu mengaktifkan ```allow-query { any; };``` pada DNS Slave.
+```
+echo 'options {
+        directory "/var/cache/bind";
+        allow-query{any;};
+
+        auth-nxdomain no;    # conform to RFC1035
+        listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+
+echo '
+zone "baratayuda.abimanyu.E15.com" {
+        type master;
+        file "/etc/bind/Baratayuda/baratayuda.abimanyu.E15.com”;
+};
+' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/Baratayuda
+cp /etc/bind/db.local /etc/bind/Baratayuda/baratayuda.abimanyu.E15.com
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.E15.com. root.baratayuda.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.E15.com.
+@       IN      A       10.44.3.2       ; IP Abimanyu
+www	IN	CNAME	baratayuda.abimanyu.E15.com.
+' > /etc/bind/Baratayuda/baratayuda.abimanyu.E15.com
+
+service bind9 restart
+```
+
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/01816614-0bf5-4d2d-bbe0-acb9310135d8)
+
+## 8. Untuk informasi yang lebih spesifik mengenai Ranjapan Baratayuda, buatlah subdomain melalui Werkudara dengan akses rjp.baratayuda.abimanyu.yyy.com dengan alias www.rjp.baratayuda.abimanyu.yyy.com yang mengarah ke Abimanyu.
+
+Sebelum mengerjakan perlu untuk melakukan setup terlebih dahulu. Karena sebelumnya telah melakukan delegasi terhadap DNS Slave dan sekarang kita diberi perintah untuk melakukan subdomain terhadap delegasi domain tadi. Kita perlu untuk melakukan penambahan pada DNS Slave sebagai berikut:
+```
+rjp     IN      A       10.44.3.2       ; IP Abimanyu
+www.rjp IN      CNAME   rjp
+```
+
+#### Werkudara
+```
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.E15.com. root.baratayuda.abimanyu.E15.com. (
+                        2023100901      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.E15.com.
+@       IN      A       10.44.1.2       ; IP Werkudara
+www     IN      CNAME   baratayuda.abimanyu.E15.com.
+rjp     IN      A       10.44.3.2       ; IP Abimanyu
+www.rjp IN      CNAME   rjp
+' > /etc/bind/Baratayuda/baratayuda.abimanyu.E15.com
+
+service bind9 restart
+```
+### Hasil :
+![image](https://github.com/weynard02/Jarkom-Modul-2-E15-2023/assets/106955551/6cbb01f7-15bd-42f7-995e-2dca0287be4d)
+
+## 9. Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.
+
+## 10. Kemudian gunakan algoritma Round Robin untuk Load Balancer pada Arjuna. Gunakan server_name pada soal nomor 1. Untuk melakukan pengecekan akses alamat web tersebut kemudian pastikan worker yang digunakan untuk menangani permintaan akan berganti ganti secara acak. Untuk webserver di masing-masing worker wajib berjalan di port 8001-8003. Contoh
+    - Prabakusuma:8001
+    - Abimanyu:8002
+    - Wisanggeni:8003
+
 ## 11. Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
 
 Pertama, kita perlu menginstall apache2 pada Abimanyu terlebih dahulu.
